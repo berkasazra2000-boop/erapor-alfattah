@@ -1,6 +1,7 @@
 // app/dashboard/siswa/page.tsx
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import Link from 'next/link'
 
 async function tambahSiswa(formData: FormData) {
   'use server'
@@ -44,7 +45,15 @@ export default async function SiswaPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Siswa</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Siswa</h1>
+        <Link
+          href="/dashboard/siswa/import"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+        >
+          📥 Import Excel
+        </Link>
+      </div>
 
       <div className="bg-white p-6 rounded-lg border mb-6">
         <h2 className="font-semibold mb-4">Tambah Siswa</h2>

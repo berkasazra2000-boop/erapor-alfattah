@@ -26,6 +26,20 @@ async function tambahKelas(formData: FormData) {
   revalidatePath('/dashboard/kelas')
 }
 
+async function setWaliKelas(formData: FormData) {
+  'use server'
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const wali_kelas_id = formData.get('wali_kelas_id') as string
+
+  await supabase
+    .from('classes')
+    .update({ wali_kelas_id: wali_kelas_id || null })
+    .eq('id', id)
+
+  revalidatePath('/dashboard/kelas')
+}
+
 async function hapusKelas(formData: FormData) {
   'use server'
   const supabase = await createClient()
@@ -50,7 +64,19 @@ export default async function KelasPage() {
 
   const { data: daftar } = await supabase
     .from('classes')
-    .select('id, nama, class_levels(nama), academic_years(tahun, semester)')
+    .select(`
+        id, nama,
+        class_levels(nama),
+        academic_years(tahun, semester),
+        wali_kelas_id,
+        profiles(nama)
+    `)
+    .order('nama')
+
+  const { data: guru } = await supabase
+    .from('profiles')
+    .select('id, nama')
+    .eq('role', 'wali_kelas')
     .order('nama')
 
   return (
@@ -112,6 +138,7 @@ export default async function KelasPage() {
               <th className="text-left px-4 py-3">Kelas</th>
               <th className="text-left px-4 py-3">Tingkat</th>
               <th className="text-left px-4 py-3">Tahun Ajaran</th>
+              <th className="text-left px-4 py-3">Wali Kelas</th>
               <th className="text-right px-4 py-3">Aksi</th>
             </tr>
           </thead>
@@ -123,6 +150,29 @@ export default async function KelasPage() {
                   <td className="px-4 py-3">{row.class_levels?.nama}</td>
                   <td className="px-4 py-3">
                     {row.academic_years?.tahun} — Smt {row.academic_years?.semester}
+                  </td>
+                  <td className="px-4 py-3">
+                    <form action={setWaliKelas} className="flex gap-2 items-center">
+                        <input type="hidden" name="id" value={row.id} />
+                        <select
+                        name="wali_kelas_id"
+                        defaultValue={row.wali_kelas_id ?? ''}
+                        className="border rounded px-2 py-1 text-xs"
+                        >
+                        <option value="">— belum —</option>
+                        {guru?.map((g) => (
+                            <option key={g.id} value={g.id}>
+                            {g.nama}
+                            </option>
+                        ))}
+                        </select>
+                        <button
+                        type="submit"
+                        className="text-blue-600 hover:underline text-xs"
+                        >
+                        Set
+                        </button>
+                    </form>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <form action={hapusKelas} className="inline">
@@ -139,7 +189,7 @@ export default async function KelasPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
                   Belum ada kelas
                 </td>
               </tr>
