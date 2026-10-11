@@ -21,19 +21,21 @@ async function setAktif(formData: FormData) {
   const supabase = await createClient()
   const id = formData.get('id') as string
 
-  // Matikan semua dulu
-  await supabase.from('academic_years').update({ is_active: false }).neq('id', '00000000-0000-0000-0000-000000000000')
-  // Aktifkan yang dipilih
+  await supabase
+    .from('academic_years')
+    .update({ is_active: false })
+    .neq('id', '00000000-0000-0000-0000-000000000000')
+
   await supabase.from('academic_years').update({ is_active: true }).eq('id', id)
 
   revalidatePath('/dashboard/tahun-ajaran')
+  revalidatePath('/dashboard/kelas')
 }
 
 async function hapus(formData: FormData) {
   'use server'
   const supabase = await createClient()
   const id = formData.get('id') as string
-
   await supabase.from('academic_years').delete().eq('id', id)
   revalidatePath('/dashboard/tahun-ajaran')
 }
@@ -55,10 +57,10 @@ export default async function TahunAjaranPage() {
           <div>
             <label className="block text-sm mb-1">Tahun</label>
             <input
-              name="tahun"
-              placeholder="2025/2026"
-              required
-              className="border rounded px-3 py-2"
+            name="tahun"
+            placeholder="2026/2027"
+            required
+            className="border rounded px-3 py-2"
             />
           </div>
           <div>
