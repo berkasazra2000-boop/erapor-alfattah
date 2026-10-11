@@ -45,7 +45,6 @@ export default async function MapelPage() {
               </div>
 
               <div className="p-4 space-y-4">
-                {/* Wajib */}
                 <div>
                   <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">
                     Mata Pelajaran Wajib
@@ -60,7 +59,6 @@ export default async function MapelPage() {
                   </ol>
                 </div>
 
-                {/* Pilihan */}
                 <div>
                   <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">
                     Kelompok Pilihan
@@ -77,7 +75,6 @@ export default async function MapelPage() {
                   </ol>
                 </div>
 
-                {/* Muatan Lokal */}
                 {mulok.length > 0 && (
                   <div>
                     <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">
