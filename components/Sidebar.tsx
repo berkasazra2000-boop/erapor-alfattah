@@ -9,24 +9,41 @@ type Profile = {
   role: string
 } | null
 
+const menuByRole: Record<string, { href: string; label: string; icon: string }[]> = {
+  admin: [
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/dashboard/tahun-ajaran', label: 'Tahun Ajaran', icon: '📅' },
+    { href: '/dashboard/kelas', label: 'Kelas', icon: '🏫' },
+    { href: '/dashboard/siswa', label: 'Siswa', icon: '👥' },
+    { href: '/dashboard/mapel', label: 'Mata Pelajaran', icon: '📚' },
+    { href: '/dashboard/guru', label: 'Guru & Assign', icon: '👨‍🏫' },
+  ],
+  guru_mapel: [
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/dashboard/nilai', label: 'Nilai Saya', icon: '📝' },
+  ],
+  wali_kelas: [
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/dashboard/nilai', label: 'Nilai Saya', icon: '📝' },
+    { href: '/dashboard/wali-kelas', label: 'Wali Kelas', icon: '🏫' },
+  ],
+  kepsek: [{ href: '/dashboard', label: 'Dashboard', icon: '📊' }],
+  siswa: [{ href: '/dashboard', label: 'Dashboard', icon: '📊' }],
+  ortu: [{ href: '/dashboard', label: 'Dashboard', icon: '📊' }],
+}
+
 export default function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+
+  const menu = menuByRole[profile?.role ?? 'admin'] ?? menuByRole.admin
 
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
   }
-
-  const menu = [
-    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { href: '/dashboard/tahun-ajaran', label: 'Tahun Ajaran', icon: '📅' },
-    { href: '/dashboard/kelas', label: 'Kelas', icon: '🏫' },
-    { href: '/dashboard/siswa', label: 'Siswa', icon: '👥' },
-    { href: '/dashboard/mapel', label: 'Mata Pelajaran', icon: '📚' },
-  ]
 
   return (
     <aside className="w-64 bg-white border-r min-h-screen flex flex-col">
