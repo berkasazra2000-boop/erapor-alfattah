@@ -32,12 +32,23 @@ async function setWaliKelas(formData: FormData) {
   const id = formData.get('id') as string
   const wali_kelas_id = formData.get('wali_kelas_id') as string
 
+  // Update kelas
   await supabase
     .from('classes')
     .update({ wali_kelas_id: wali_kelas_id || null })
     .eq('id', id)
 
+  // Kalau ada wali kelas yang di-set, update role jadi 'wali_kelas'
+  if (wali_kelas_id) {
+    await supabase
+      .from('profiles')
+      .update({ role: 'wali_kelas' })
+      .eq('id', wali_kelas_id)
+      .in('role', ['guru_mapel', 'wali_kelas']) // jangan overwrite admin
+  }
+
   revalidatePath('/dashboard/kelas')
+  revalidatePath('/dashboard/wali-kelas')
 }
 
 async function hapusKelas(formData: FormData) {
