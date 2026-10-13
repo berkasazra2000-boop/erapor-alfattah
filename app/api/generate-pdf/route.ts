@@ -1,0 +1,113 @@
+// app/api/generate-pdf/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import puppeteer, { type Browser } from 'puppeteer'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
+// Cache browser instance globally (reuse antar request)
+let browserPromise: Promise<Browser> | null = null
+
+function getBrowser(): Promise<Browser> {
+  if (!browserPromise) {
+    browserPromise = puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+      ],
+    })
+
+    // Kalau browser crash, reset cache
+    browserPromise.then((b) => {
+      b.on('disconnected', () => {
+        browserPromise = null
+      })
+    })
+  }
+  return browserPromise
+}
+
+export async function POST(req: NextRequest) {
+  let page: any = null
+
+  try {
+    const { student_id } = await req.json()
+
+    if (!student_id) {
+      return NextResponse.json({ error: 'student_id wajib diisi' }, { status: 400 })
+    }
+
+    const { getRaporData } = await import('@/lib/rapor-data')
+    const data = await getRaporData(student_id)
+
+    if (!data) {
+      return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
+    }
+
+    const origin = req.nextUrl.origin
+    const url = `${origin}/print/rapor/${student_id}`
+
+    const browser = await getBrowser()
+    page = await browser.newPage()
+
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await page.evaluateHandle('document.fonts.ready')
+
+    const footerTemplate = `
+      <div style="
+        width: 100%;
+        padding: 0 20mm 0 20mm;
+        box-sizing: border-box;
+      ">
+        <div style="
+          border-top: 1px solid #000;
+          padding-top: 3px;
+          display: flex;
+          justify-content: space-between;
+          font-size: 10px;
+          font-family: Arial, Helvetica, sans-serif;
+          font-weight: bold;
+          font-style: italic;
+        ">
+          <span>${data.kelasNama} | ${data.siswa.nama} | ${data.siswa.nis}</span>
+          <span>Halaman: <span class="pageNumber"></span></span>
+        </div>
+      </div>
+    `
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: '<span></span>',
+      footerTemplate,
+      margin: {
+        top: '20mm',
+        bottom: '22mm',
+        left: '20mm',
+        right: '20mm',
+      },
+    })
+
+    await page.close()
+    page = null
+
+    const safeName = data.siswa.nama.replace(/[^a-zA-Z0-9]/g, '-')
+
+    return new NextResponse(pdfBuffer as any, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="rapor-${safeName}.pdf"`,
+      },
+    })
+  } catch (error: any) {
+    if (page) await page.close().catch(() => {})
+    console.error('GENERATE PDF ERROR:', error)
+    return NextResponse.json(
+      { error: 'Gagal generate PDF: ' + (error.message ?? 'unknown') },
+      { status: 500 }
+    )
+  }
+}

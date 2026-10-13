@@ -40,6 +40,22 @@ async function hapus(formData: FormData) {
   revalidatePath('/dashboard/tahun-ajaran')
 }
 
+async function simpanCetak(formData: FormData) {
+  'use server'
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const tempat_cetak = (formData.get('tempat_cetak') as string) || null
+  const tanggal_cetak = (formData.get('tanggal_cetak') as string) || null
+
+  await supabase
+    .from('academic_years')
+    .update({ tempat_cetak, tanggal_cetak })
+    .eq('id', id)
+
+  revalidatePath('/dashboard/tahun-ajaran')
+  revalidatePath('/dashboard/rapor')
+}
+
 export default async function TahunAjaranPage() {
   const supabase = await createClient()
   const { data: daftar } = await supabase
@@ -47,20 +63,23 @@ export default async function TahunAjaranPage() {
     .select('*')
     .order('tahun', { ascending: false })
 
+  const aktif = (daftar ?? []).find((d) => d.is_active)
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Tahun Ajaran</h1>
 
+      {/* Form tambah */}
       <div className="bg-white p-6 rounded-lg border mb-6">
         <h2 className="font-semibold mb-4">Tambah Tahun Ajaran</h2>
         <form action={tambahTahunAjaran} className="flex gap-3 items-end">
           <div>
             <label className="block text-sm mb-1">Tahun</label>
             <input
-            name="tahun"
-            placeholder="2026/2027"
-            required
-            className="border rounded px-3 py-2"
+              name="tahun"
+              placeholder="2026/2027"
+              required
+              className="border rounded px-3 py-2"
             />
           </div>
           <div>
@@ -79,6 +98,48 @@ export default async function TahunAjaranPage() {
         </form>
       </div>
 
+      {/* Form pengaturan cetak (hanya untuk tahun ajaran aktif) */}
+      {aktif && (
+        <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-6">
+          <h2 className="font-semibold mb-1">
+            Pengaturan Cetak Rapor — {aktif.tahun} Smt {aktif.semester}
+          </h2>
+          <p className="text-xs text-gray-600 mb-4">
+            Tanggal & tempat ini akan muncul di bagian bawah rapor.
+          </p>
+          <form action={simpanCetak} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <input type="hidden" name="id" value={aktif.id} />
+            <div>
+              <label className="block text-sm mb-1">Tempat Cetak</label>
+              <input
+                name="tempat_cetak"
+                defaultValue={aktif.tempat_cetak ?? ''}
+                placeholder="Lamongan"
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Tanggal Cetak</label>
+              <input
+                type="date"
+                name="tanggal_cetak"
+                defaultValue={aktif.tanggal_cetak ?? ''}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                💾 Simpan Pengaturan Cetak
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Tabel daftar */}
       <div className="bg-white rounded-lg border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">

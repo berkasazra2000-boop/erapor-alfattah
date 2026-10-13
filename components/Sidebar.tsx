@@ -1,3 +1,4 @@
+// components/Sidebar.tsx
 'use client'
 
 import Link from 'next/link'
@@ -9,7 +10,10 @@ type Profile = {
   role: string
 } | null
 
-const menuByRole: Record<string, { href: string; label: string; icon: string }[]> = {
+const menuByRole: Record<
+  string,
+  { href: string; label: string; icon: string }[]
+> = {
   admin: [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/dashboard/tahun-ajaran', label: 'Tahun Ajaran', icon: '📅' },
@@ -17,6 +21,8 @@ const menuByRole: Record<string, { href: string; label: string; icon: string }[]
     { href: '/dashboard/siswa', label: 'Siswa', icon: '👥' },
     { href: '/dashboard/mapel', label: 'Mata Pelajaran', icon: '📚' },
     { href: '/dashboard/guru', label: 'Guru & Assign', icon: '👨‍🏫' },
+    { href: '/dashboard/nilai', label: 'Nilai', icon: '📝' },
+    { href: '/dashboard/rapor', label: 'Cetak Rapor', icon: '🖨️' },
   ],
   guru_mapel: [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -26,6 +32,7 @@ const menuByRole: Record<string, { href: string; label: string; icon: string }[]
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/dashboard/nilai', label: 'Nilai Saya', icon: '📝' },
     { href: '/dashboard/wali-kelas', label: 'Wali Kelas', icon: '🏫' },
+    { href: '/dashboard/rapor', label: 'Cetak Rapor', icon: '🖨️' },
   ],
   kepsek: [{ href: '/dashboard', label: 'Dashboard', icon: '📊' }],
   siswa: [{ href: '/dashboard', label: 'Dashboard', icon: '📊' }],
@@ -46,13 +53,13 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   }
 
   return (
-    <aside className="w-64 bg-white border-r min-h-screen flex flex-col">
+    <aside className="w-64 shrink-0 bg-white border-r min-h-screen flex flex-col sticky top-0 h-screen">
       <div className="p-6 border-b">
         <h1 className="font-bold text-lg">e-Rapor</h1>
         <p className="text-xs text-gray-500">SMAS Al Fattah</p>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menu.map((item) => {
           const active =
             item.href === '/dashboard'

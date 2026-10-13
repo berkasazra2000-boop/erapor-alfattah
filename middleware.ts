@@ -1,3 +1,4 @@
+// middleware.ts
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -26,6 +27,11 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
+  // Skip auth untuk halaman print & API internal
+  if (path.startsWith('/print') || path.startsWith('/api/generate-pdf')) {
+    return response
+  }
+
   if (!user && !path.startsWith('/login')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -37,5 +43,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

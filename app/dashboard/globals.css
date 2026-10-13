@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ========== RAPOR PRINT STYLES ========== */
+
+.rapor-page {
+  position: relative;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 12mm 15mm 20mm 18mm;
+  box-sizing: border-box;
+  background: white;
+  margin: 0 auto 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rapor-footer {
+  position: absolute;
+  bottom: 8mm;
+  left: 18mm;
+  right: 15mm;
+  font-size: 9pt;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rapor-identitas {
+  width: 100%;
+  font-size: 10pt;
+  border-collapse: collapse;
+}
+
+.rapor-identitas td {
+  padding: 1px 3px;
+  vertical-align: top;
+}
+
+.rapor-judul {
+  text-align: center;
+  font-weight: bold;
+  font-size: 13pt;
+  margin: 14px 0;
+}
+
+table.rapor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10pt;
+  table-layout: fixed;
+}
+
+table.rapor-table th,
+table.rapor-table td {
+  border: 1px solid #000;
+  padding: 3px 5px;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+
+table.rapor-table th {
+  background: #d9d9d9;
+  text-align: center;
+  font-weight: bold;
+  padding: 4px 5px;
+}
+
+table.rapor-table tr.section-row td {
+  background: #d9d9d9;
+  font-weight: bold;
+  text-align: center;
+}
+
+table.rapor-table td.center {
+  text-align: center;
+}
+
+table.rapor-table td.cp {
+  text-align: justify;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.rapor-catatan-label {
+  font-weight: bold;
+  font-size: 10pt;
+  font-style: italic;
+  margin-top: 12px;
+}
+
+.rapor-catatan-box {
+  border: 1.5px solid #000;
+  padding: 6px 12px;
+  margin-top: 3px;
+  font-size: 10pt;
+  font-style: italic;
+  text-align: center;
+  min-height: 40px;
+}
+
+table.rapor-ttd {
+  width: 100%;
+  margin-top: 18px;
+  font-size: 10pt;
+  border-collapse: collapse;
+}
+
+table.rapor-ttd td {
+  vertical-align: top;
+  padding: 0;
+  line-height: 1.4;
+}
+
+@media print {
+  html,
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .rapor-page {
+    margin: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always;
+    min-height: 296mm;
+  }
+  .rapor-page:last-child {
+    page-break-after: auto;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
