@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -19,6 +18,9 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // ✅ createClient dipanggil di dalam handler, bukan di atas
+    const supabase = createClient()
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -38,14 +40,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* ============ LEFT PANEL — BRAND ============ */}
+      {/* LEFT PANEL */}
       <div
         className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12"
         style={{
           background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
         }}
       >
-        {/* Decorative dots */}
         <div
           className="absolute inset-0 opacity-[0.08]"
           style={{
@@ -53,13 +54,10 @@ export default function LoginPage() {
             backgroundSize: '60px 60px',
           }}
         />
-
-        {/* Decorative gradient blob */}
         <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-emerald-500/20 blur-3xl" />
         <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl" />
 
         <div className="relative z-10">
-          {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div className="w-14 h-14 rounded-2xl bg-white p-2 shadow-2xl">
               <Image
@@ -75,23 +73,16 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <div
-                className="text-white font-bold text-lg leading-tight"
-                style={{ fontFamily: 'var(--font-jakarta)' }}
-              >
+              <div className="text-white font-bold text-lg leading-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
                 E-Rapor
               </div>
               <div className="text-emerald-400 text-xs font-semibold tracking-wider uppercase">
-                SMA Unggulan BPPT Al Fattah
+                Al Fattah
               </div>
             </div>
           </div>
 
-          {/* Headline */}
-          <h1
-            className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6"
-            style={{ fontFamily: 'var(--font-jakarta)' }}
-          >
+          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6" style={{ fontFamily: 'var(--font-jakarta)' }}>
             Sistem
             <br />
             <span className="text-emerald-400">e-Rapor</span>
@@ -100,22 +91,19 @@ export default function LoginPage() {
           </h1>
 
           <p className="text-slate-300 text-base leading-relaxed max-w-md">
-            Kelola nilai, capaian kompetensi, hingga cetak rapor PDF dalam satu
-            platform terintegrasi.
+            Kelola nilai, capaian kompetensi, hingga cetak rapor PDF dalam satu platform terintegrasi.
           </p>
         </div>
 
-        {/* Footer */}
         <div className="relative z-10 flex items-center gap-3 text-slate-400 text-sm">
           <div className="w-8 h-px bg-slate-600" />
           <span>SMA Unggulan BPPT Al Fattah</span>
         </div>
       </div>
 
-      {/* ============ RIGHT PANEL — FORM ============ */}
+      {/* RIGHT PANEL */}
       <div className="flex-1 flex items-center justify-center p-6 md:p-12 bg-slate-50">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
             <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1.5 shadow-sm">
               <Image
@@ -131,10 +119,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <div
-                className="font-bold text-base text-slate-900"
-                style={{ fontFamily: 'var(--font-jakarta)' }}
-              >
+              <div className="font-bold text-base text-slate-900" style={{ fontFamily: 'var(--font-jakarta)' }}>
                 E-Rapor
               </div>
               <div className="text-emerald-600 text-xs font-semibold tracking-wider uppercase">
@@ -143,24 +128,17 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Form header */}
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Portal Login
             </div>
-            <h2
-              className="text-3xl font-bold text-slate-900 mb-2"
-              style={{ fontFamily: 'var(--font-jakarta)' }}
-            >
+            <h2 className="text-3xl font-bold text-slate-900 mb-2" style={{ fontFamily: 'var(--font-jakarta)' }}>
               Selamat Datang
             </h2>
-            <p className="text-slate-500 text-sm">
-              Masuk untuk melanjutkan ke dashboard.
-            </p>
+            <p className="text-slate-500 text-sm">Masuk untuk melanjutkan ke dashboard.</p>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
               <div className="shrink-0 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center mt-0.5">
@@ -172,13 +150,9 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5">
-            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -198,11 +172,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -239,18 +210,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{
-                background: loading
-                  ? '#94A3B8'
-                  : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                boxShadow: loading
-                  ? 'none'
-                  : '0 4px 14px rgba(16, 185, 129, 0.35)',
+                background: loading ? '#94A3B8' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                boxShadow: loading ? 'none' : '0 4px 14px rgba(16, 185, 129, 0.35)',
                 fontFamily: 'var(--font-jakarta)',
               }}
             >
@@ -273,7 +239,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Footer */}
           <p className="mt-8 text-center text-xs text-slate-400">
             © {new Date().getFullYear()} SMA Unggulan BPPT Al Fattah
           </p>
