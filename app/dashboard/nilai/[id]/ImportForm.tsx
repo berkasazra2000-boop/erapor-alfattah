@@ -7,7 +7,6 @@ import * as XLSX from 'xlsx'
 import { simpanNilai } from './actions'
 
 type Siswa = { id: string; nis: string | null; nama: string }
-
 type ParsedRow = {
   student_id: string
   nis: string
@@ -16,6 +15,12 @@ type ParsedRow = {
   capaian_kompetensi: string
   valid: boolean
   catatan: string
+}
+
+const Icon = {
+  Download: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>),
+  Upload: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" /></svg>),
+  Check: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>),
 }
 
 export default function ImportForm({
@@ -35,112 +40,64 @@ export default function ImportForm({
   const [loading, setLoading] = useState(false)
 
   function downloadTemplate() {
-    // Sheet 1: Nilai
-    const nilaiData = siswa.map((s) => ({
-      NIS: s.nis ?? '',
-      Nama: s.nama,
-      Nilai: '',
-    }))
-
-    // Sheet 2: CP — contoh 3 kolom, guru bisa tambah CP4, CP5, dst
-    const cpData = siswa.map((s) => ({
-      NIS: s.nis ?? '',
-      Nama: s.nama,
-      CP1: '',
-      CP2: '',
-      CP3: '',
-    }))
-
+    const nilaiData = siswa.map((s) => ({ NIS: s.nis ?? '', Nama: s.nama, Nilai: '' }))
+    const cpData = siswa.map((s) => ({ NIS: s.nis ?? '', Nama: s.nama, CP1: '', CP2: '', CP3: '' }))
     const ws1 = XLSX.utils.json_to_sheet(nilaiData)
     const ws2 = XLSX.utils.json_to_sheet(cpData)
-
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws1, 'Nilai')
     XLSX.utils.book_append_sheet(wb, ws2, 'CP')
-
     XLSX.writeFile(wb, `nilai-${kelasNama}-${mapelNama}.xlsx`)
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     setError('')
     setRows([])
-
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
       const data = await file.arrayBuffer()
       const wb = XLSX.read(data)
-
       const wsNilai = wb.Sheets['Nilai']
       const wsCP = wb.Sheets['CP']
 
-      if (!wsNilai) {
-        return setError('Sheet "Nilai" tidak ditemukan di file Excel.')
-      }
+      if (!wsNilai) return setError('Sheet "Nilai" tidak ditemukan.')
 
       const jsonNilai = XLSX.utils.sheet_to_json<any>(wsNilai)
       const jsonCP = wsCP ? XLSX.utils.sheet_to_json<any>(wsCP) : []
 
-      // Mapping NIS → CP gabungan
       const cpByNis: Record<string, string> = {}
       jsonCP.forEach((r) => {
         const nis = String(r.NIS ?? '').trim()
         if (!nis) return
-
-        // Deteksi kolom CP1, CP2, ... CP10 (urutan by angka)
         const cpKeys = Object.keys(r)
           .filter((k) => /^CP\d+$/i.test(k))
-          .sort(
-            (a, b) => parseInt(a.replace(/\D/g, '')) - parseInt(b.replace(/\D/g, ''))
-          )
-
-        const cps = cpKeys
-          .map((k) => String(r[k] ?? '').trim())
-          .filter((v) => v.length > 0)
-
-        const gabung = cps
-          .map((c) => (c.endsWith('.') ? c : c + '.'))
-          .join(' ')
-
-        cpByNis[nis] = gabung
+          .sort((a, b) => parseInt(a.replace(/\D/g, '')) - parseInt(b.replace(/\D/g, '')))
+        const cps = cpKeys.map((k) => String(r[k] ?? '').trim()).filter((v) => v.length > 0)
+        cpByNis[nis] = cps.map((c) => (c.endsWith('.') ? c : c + '.')).join(' ')
       })
 
       const mapped: ParsedRow[] = jsonNilai.map((r) => {
         const nis = String(r.NIS ?? '').trim()
         const nilaiRaw = r.Nilai
-        const nilai =
-          nilaiRaw === '' || nilaiRaw === null || nilaiRaw === undefined
-            ? null
-            : Number(nilaiRaw)
-
+        const nilai = nilaiRaw === '' || nilaiRaw == null ? null : Number(nilaiRaw)
         const siswaMatch = siswa.find((s) => s.nis === nis)
 
         let catatan = ''
         let valid = true
-
-        if (!nis) {
-          catatan = 'NIS kosong'
-          valid = false
-        } else if (!siswaMatch) {
-          catatan = 'NIS tidak ditemukan di kelas ini'
-          valid = false
-        } else if (nilai !== null && (isNaN(nilai) || nilai < 0 || nilai > 100)) {
-          catatan = 'Nilai tidak valid (0-100)'
-          valid = false
-        }
+        if (!nis) { catatan = 'NIS kosong'; valid = false }
+        else if (!siswaMatch) { catatan = 'NIS tidak ditemukan'; valid = false }
+        else if (nilai !== null && (isNaN(nilai) || nilai < 0 || nilai > 100)) { catatan = 'Nilai tidak valid'; valid = false }
 
         return {
           student_id: siswaMatch?.id ?? '',
-          nis,
-          nama: siswaMatch?.nama ?? String(r.Nama ?? ''),
+          nis, nama: siswaMatch?.nama ?? String(r.Nama ?? ''),
           nilai_angka: nilai,
           capaian_kompetensi: cpByNis[nis] ?? '',
-          valid,
-          catatan,
+          valid, catatan,
         }
       })
-
       setRows(mapped)
     } catch (err: any) {
       setError('Gagal baca file: ' + (err.message ?? 'unknown'))
@@ -150,111 +107,102 @@ export default function ImportForm({
   async function handleSubmit() {
     setError('')
     const invalid = rows.filter((r) => !r.valid)
-    if (invalid.length > 0) {
-      return setError(`${invalid.length} baris tidak valid. Cek kolom "Catatan".`)
-    }
-
+    if (invalid.length > 0) return setError(`${invalid.length} baris tidak valid.`)
     setLoading(true)
     const result = await simpanNilai(
       assignmentId,
-      rows.map((r) => ({
-        student_id: r.student_id,
-        nilai_angka: r.nilai_angka,
-        capaian_kompetensi: r.capaian_kompetensi,
-      }))
+      rows.map((r) => ({ student_id: r.student_id, nilai_angka: r.nilai_angka, capaian_kompetensi: r.capaian_kompetensi }))
     )
     setLoading(false)
-
     if (result.error) return setError(result.error)
-
     alert(`✅ Berhasil simpan ${result.count} nilai`)
     router.push('/dashboard/nilai')
     router.refresh()
   }
 
+  const validCount = rows.filter((r) => r.valid).length
+  const invalidCount = rows.length - validCount
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg border">
-        <h2 className="font-semibold mb-3">1. Download Template</h2>
-        <p className="text-sm text-gray-600 mb-3">
-          File berisi 2 sheet:
-          <br />• <b>Nilai</b> — kolom: NIS, Nama, Nilai
-          <br />• <b>CP</b> — kolom: NIS, Nama, CP1, CP2, CP3, ... (bisa tambah CP4, CP5
-          dst)
-        </p>
-        <button
-          onClick={downloadTemplate}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          📥 Download Template
-        </button>
+    <div className="space-y-5">
+      {/* Step 1 */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold">1</div>
+          <div className="flex-1">
+            <div className="font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-jakarta)' }}>Download Template</div>
+            <p className="text-sm text-slate-500 mb-4">
+              File berisi 2 sheet: <b>Nilai</b> (NIS, Nama, Nilai) dan <b>CP</b> (NIS, Nama, CP1, CP2, CP3, ...)
+            </p>
+            <button onClick={downloadTemplate} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/20 hover:shadow-lg transition-all" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              {Icon.Download} Download Template
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg border">
-        <h2 className="font-semibold mb-3">2. Upload File yang Sudah Diisi</h2>
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleFile}
-          className="block w-full text-sm border rounded p-2"
-        />
+      {/* Step 2 */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 font-bold">2</div>
+          <div className="flex-1">
+            <div className="font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-jakarta)' }}>Upload File</div>
+            <p className="text-sm text-slate-500 mb-4">File Excel yang sudah diisi nilai dan CP</p>
+            <input type="file" accept=".xlsx,.xls" onChange={handleFile} className="block w-full text-sm border border-dashed border-slate-300 rounded-xl p-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer transition-colors" />
+          </div>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded text-sm">
-          ⚠️ {error}
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm flex items-start gap-3">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+          <div>{error}</div>
         </div>
       )}
 
+      {/* Preview */}
       {rows.length > 0 && (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-            <span className="font-medium">
-              Preview — {rows.length} siswa ({rows.filter((r) => r.valid).length}{' '}
-              valid)
-            </span>
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Menyimpan...' : '✅ Simpan Nilai'}
+        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div>
+              <div className="font-bold text-slate-900" style={{ fontFamily: 'var(--font-jakarta)' }}>Preview Data</div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                <span className="text-emerald-600 font-semibold">{validCount} valid</span>
+                {invalidCount > 0 && <span className="text-red-600 font-semibold ml-2">{invalidCount} error</span>}
+              </div>
+            </div>
+            <button onClick={handleSubmit} disabled={loading} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md shadow-emerald-500/20 hover:shadow-lg disabled:opacity-50 transition-all" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              {loading ? 'Menyimpan...' : <>{Icon.Check} Simpan Nilai</>}
             </button>
           </div>
           <div className="overflow-x-auto max-h-96">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 border-b sticky top-0">
+              <thead className="bg-slate-100/50 sticky top-0">
                 <tr>
-                  <th className="text-left px-3 py-2">#</th>
-                  <th className="text-left px-3 py-2">NIS</th>
-                  <th className="text-left px-3 py-2">Nama</th>
-                  <th className="text-left px-3 py-2">Nilai</th>
-                  <th className="text-left px-3 py-2">CP (gabungan)</th>
-                  <th className="text-left px-3 py-2">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">NIS</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nilai</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">CP</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r, i) => (
-                  <tr
-                    key={i}
-                    className={`border-b ${r.valid ? '' : 'bg-red-50'}`}
-                  >
-                    <td className="px-3 py-2">{i + 1}</td>
-                    <td className="px-3 py-2">{r.nis}</td>
-                    <td className="px-3 py-2">{r.nama}</td>
-                    <td className="px-3 py-2">{r.nilai_angka ?? '-'}</td>
-                    <td className="px-3 py-2 text-xs text-gray-600 max-w-md truncate">
-                      {r.capaian_kompetensi || '-'}
-                    </td>
-                    <td className="px-3 py-2">
+                  <tr key={i} className={`border-b border-slate-50 ${r.valid ? '' : 'bg-red-50/50'}`}>
+                    <td className="px-4 py-3 text-slate-400 font-mono text-xs">{i + 1}</td>
+                    <td className="px-4 py-3 text-slate-600 font-mono text-xs">{r.nis}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">{r.nama}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">{r.nilai_angka ?? '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500 max-w-md truncate">{r.capaian_kompetensi || '—'}</td>
+                    <td className="px-4 py-3">
                       {r.valid ? (
-                        <span className="text-green-600 text-xs font-medium">
-                          ✓ OK
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          OK
                         </span>
                       ) : (
-                        <span className="text-red-600 text-xs font-medium">
-                          ✗ {r.catatan}
-                        </span>
+                        <span className="text-red-600 text-xs font-semibold">{r.catatan}</span>
                       )}
                     </td>
                   </tr>

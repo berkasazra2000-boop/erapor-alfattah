@@ -19,11 +19,11 @@ export default async function DashboardLayout({
     .single()
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <div className="no-print">
-        <Sidebar profile={profile} />
-      </div>
-      <main className="flex-1 p-8 overflow-x-auto min-w-0">{children}</main>
+    <div className="flex min-h-screen bg-slate-50">
+      <Sidebar profile={profile} />
+      <main className="flex-1 overflow-x-auto min-w-0">
+        <div className="p-6 md:p-8 max-w-[1400px] mx-auto">{children}</div>
+      </main>
     </div>
   )
 }

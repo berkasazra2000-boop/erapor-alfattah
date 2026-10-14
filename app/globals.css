@@ -1,8 +1,231 @@
 @import "tailwindcss";
 @import "./rapor.css";
 
+/* ========== THEME ========== */
+@theme {
+  --color-navy-50: #F8FAFC;
+  --color-navy-100: #F1F5F9;
+  --color-navy-200: #E2E8F0;
+  --color-navy-300: #CBD5E1;
+  --color-navy-400: #94A3B8;
+  --color-navy-500: #64748B;
+  --color-navy-600: #475569;
+  --color-navy-700: #334155;
+  --color-navy-800: #1E293B;
+  --color-navy-900: #0F172A;
+  --color-navy-950: #020617;
+
+  --color-brand-50: #ECFDF5;
+  --color-brand-100: #D1FAE5;
+  --color-brand-500: #10B981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+
+  --color-gold-500: #F59E0B;
+  --color-gold-600: #D97706;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ========== BASE ========== */
 body {
-  background: #f9fafb;
-  color: #171717;
+  background: #F8FAFC;
+  color: #0F172A;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* ========== CUSTOM SCROLLBAR ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ========== GLOBAL FOCUS ========== */
+*:focus-visible {
+  outline: 2px solid #10B981;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ========== RAPOR PRINT STYLES ========== */
+
+.rapor-page {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  background: white;
+  margin: 0;
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+  color: #000;
+}
+
+.rapor-separator {
+  border: none;
+  border-top: 2px solid #000;
+  margin: 6px 0 4px;
+}
+
+.rapor-identitas {
+  width: 100%;
+  font-size: 10pt;
+  border-collapse: collapse;
+}
+
+.rapor-identitas td {
+  padding: 1px 3px;
+  vertical-align: top;
+}
+
+.rapor-judul {
+  text-align: center;
+  font-weight: bold;
+  font-size: 13pt;
+  margin: 14px 0;
+}
+
+table.rapor-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  font-size: 10pt;
+  table-layout: fixed;
+  line-height: 1.15;
+}
+
+table.rapor-table th,
+table.rapor-table td {
+  border-right: 1px solid #000;
+  border-bottom: 2px solid #000;   /* ← 1px → 2px */
+  padding: 2px 4px;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+
+table.rapor-table th {
+  background: #b8b8b8;
+  text-align: center;
+  font-weight: bold;
+  padding: 3px 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+table.rapor-table tr.section-row td {
+  background: #b8b8b8;
+  font-weight: bold;
+  text-align: left;
+  padding: 2px 8px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+table.rapor-table td.center {
+  text-align: center;
+}
+
+table.rapor-table td.cp {
+  text-align: justify;
+  font-size: 9pt;
+  line-height: 1.25;
+}
+
+.rapor-catatan-label {
+  font-weight: bold;
+  font-size: 10pt;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+.rapor-catatan-box {
+  border: 1.5px solid #000;
+  padding: 6px 12px;
+  margin-top: 3px;
+  font-size: 10pt;
+  font-style: italic;
+  text-align: center;
+  min-height: 45px;
+}
+
+/* ===== GARIS BATAS BAWAH ===== */
+.rapor-end-border {
+  border-bottom: 2px solid #000;
+  margin-top: 20px;
+  padding-bottom: 4px;
+}
+
+/* ===== PRINT ===== */
+@media print {
+  html,
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .rapor-page {
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  table.rapor-table thead {
+    display: table-header-group;
+  }
+
+  table.rapor-table tr {
+    page-break-inside: auto;
+  }
+
+  .rapor-ttd-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .rapor-catatan-box {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .rapor-bulk-item {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .rapor-bulk-item:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+    /* ✅ FIX: gambar border di setiap potongan sel yang kepotong */
+  table.rapor-table td,
+  table.rapor-table th {
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* ⚠️ JANGAN set margin: 0 di @page — biar margin Puppeteer yang dipakai */
 }

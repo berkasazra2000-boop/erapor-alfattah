@@ -22,7 +22,14 @@ export default function PrintButton({ studentId }: { studentId: string }) {
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
+
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'rapor.pdf'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
     } catch (err: any) {
       alert('❌ ' + (err.message ?? 'Gagal generate PDF'))
     } finally {
@@ -34,9 +41,27 @@ export default function PrintButton({ studentId }: { studentId: string }) {
     <button
       onClick={handleDownload}
       disabled={loading}
-      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm disabled:opacity-50"
+      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md shadow-emerald-500/20 hover:shadow-lg disabled:opacity-50 transition-all shrink-0"
+      style={{ fontFamily: 'var(--font-jakarta)' }}
     >
-      {loading ? '⏳ Memproses...' : '🖨️ Cetak / Simpan PDF'}
+      {loading ? (
+        <>
+          <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="3" opacity="0.25" />
+            <path d="M22 12a10 10 0 0 1-10 10" stroke="white" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+          Memproses...
+        </>
+      ) : (
+        <>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" rx="1" />
+          </svg>
+          Cetak / Simpan PDF
+        </>
+      )}
     </button>
   )
 }

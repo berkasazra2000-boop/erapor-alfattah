@@ -35,6 +35,7 @@ type Props = {
   absensi: { sakit: number; izin: number; alpha: number }
   catatan: string
   waliKelas: { nama: string; nip: string }
+  hideIdentitas?: boolean
 }
 
 function Identitas({ sekolah, siswa, tahun }: Props) {
@@ -106,41 +107,38 @@ export default function RaporContent({
   absensi,
   catatan,
   waliKelas,
+  hideIdentitas = false,
 }: Props) {
   const wajib = mapel.filter((m) => m.kategori === 'wajib')
   const pilihan = mapel.filter((m) => m.kategori === 'pilihan')
   const mulok = mapel.filter((m) => m.kategori === 'muatan_lokal')
 
-  // Tanggal otomatis = tanggal cetak (saat PDF di-generate)
-  const tanggalIndo = tahun.tanggal_cetak
-  ? new Date(tahun.tanggal_cetak).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  : new Date().toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
+  const tanggalIndo = new Date().toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
   const startPilihan = wajib.length + 1
   const startMulok = wajib.length + pilihan.length + 1
 
   return (
     <div className="rapor-page">
-      <Identitas
-        sekolah={sekolah}
-        siswa={siswa}
-        tahun={tahun}
-        mapel={[]}
-        ekskul={[]}
-        absensi={absensi}
-        catatan=""
-        waliKelas={waliKelas}
-      />
-
-      <hr className="rapor-separator" />
+      {!hideIdentitas && (
+        <>
+          <Identitas
+            sekolah={sekolah}
+            siswa={siswa}
+            tahun={tahun}
+            mapel={[]}
+            ekskul={[]}
+            absensi={absensi}
+            catatan=""
+            waliKelas={waliKelas}
+          />
+          <hr className="rapor-separator" />
+        </>
+      )}
 
       <div className="rapor-judul">LAPORAN HASIL BELAJAR</div>
 
@@ -237,85 +235,72 @@ export default function RaporContent({
         {catatan ? <>&ldquo;{catatan}&rdquo;</> : <>&nbsp;</>}
       </div>
 
-      {/* TTD: Orang Tua (kiri) + Wali Kelas (kanan) */}
-      <table
-        style={{
-          width: '100%',
-          fontSize: '10pt',
-          borderCollapse: 'collapse',
-          marginTop: '24px',
-        }}
-      >
-        <tbody>
-          <tr>
-            <td
-              style={{
-                width: '50%',
-                textAlign: 'left',
-                verticalAlign: 'top',
-              }}
-            >
-              <div>Mengetahui</div>
-              <div style={{ fontWeight: 'bold' }}>Orang Tua/Wali,</div>
-            </td>
-            <td
-              style={{
-                width: '50%',
-                textAlign: 'left',
-                verticalAlign: 'top',
-                paddingLeft: '20mm',
-              }}
-            >
-              <div style={{ fontWeight: 'bold' }}>
-                {tahun.tempat_cetak || 'Lamongan'}, {tanggalIndo}
-              </div>
-              <div style={{ fontWeight: 'bold' }}>Wali Kelas,</div>
-            </td>
-          </tr>
+      {/* ====== BLOK TTD ====== */}
+      <div className="rapor-ttd-block">
+        <table
+          style={{
+            width: '100%',
+            fontSize: '10pt',
+            borderCollapse: 'collapse',
+            marginTop: '24px',
+          }}
+        >
+          <tbody>
+            <tr>
+              <td style={{ width: '50%', textAlign: 'left', verticalAlign: 'top' }}>
+                <div>Mengetahui</div>
+                <div style={{ fontWeight: 'bold' }}>Orang Tua/Wali,</div>
+              </td>
+              <td
+                style={{
+                  width: '50%',
+                  textAlign: 'left',
+                  verticalAlign: 'top',
+                  paddingLeft: '20mm',
+                }}
+              >
+                <div style={{ fontWeight: 'bold' }}>
+                  {tahun.tempat_cetak || 'Lamongan'}, {tanggalIndo}
+                </div>
+                <div style={{ fontWeight: 'bold' }}>Wali Kelas,</div>
+              </td>
+            </tr>
+            <tr>
+              <td style={{ height: '80px' }}></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td style={{ textAlign: 'left', verticalAlign: 'bottom' }}>
+                <div style={{ letterSpacing: '2px' }}>..............................</div>
+              </td>
+              <td
+                style={{
+                  textAlign: 'left',
+                  verticalAlign: 'bottom',
+                  paddingLeft: '20mm',
+                }}
+              >
+                <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>
+                  {waliKelas.nama}
+                </div>
+                <div>NIP. {waliKelas.nip || '-'}</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-          <tr>
-            <td style={{ height: '80px' }}></td>
-            <td></td>
-          </tr>
-
-          <tr>
-            <td style={{ textAlign: 'left', verticalAlign: 'bottom' }}>
-              <div style={{ letterSpacing: '2px' }}>
-                ..............................
-              </div>
-            </td>
-            <td
-              style={{
-                textAlign: 'left',
-                verticalAlign: 'bottom',
-                paddingLeft: '20mm',
-              }}
-            >
-              <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>
-                {waliKelas.nama}
-              </div>
-              <div>NIP. {waliKelas.nip || '-'}</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      {/* Kepala Sekolah di tengah bawah */}
-      <div
-        style={{
-          marginTop: '30px',
-          textAlign: 'center',
-          fontSize: '10pt',
-        }}
-      >
-        <div>Mengetahui,</div>
-        <div style={{ fontWeight: 'bold' }}>Kepala Sekolah</div>
-        <div style={{ height: '80px' }}></div>
-        <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>
-          {sekolah.kepala_sekolah}
+        <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '10pt' }}>
+          <div>Mengetahui,</div>
+          <div style={{ fontWeight: 'bold' }}>Kepala Sekolah</div>
+          <div style={{ height: '80px' }}></div>
+          <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>
+            {sekolah.kepala_sekolah}
+          </div>
+          <div>NIP. {sekolah.nip_kepsek || '-'}</div>
         </div>
-        <div>NIP. {sekolah.nip_kepsek || '-'}</div>
       </div>
+
+      
     </div>
   )
 }
