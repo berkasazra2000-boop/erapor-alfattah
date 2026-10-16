@@ -69,6 +69,11 @@ const Icon = {
       <path d="M9 22V12h6v10" />
     </svg>
   ),
+  Legger: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18M7 16l4-4 4 4 5-5" />
+    </svg>
+  ),
   Rapor: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="6 9 6 2 18 2 18 9" />
@@ -92,6 +97,7 @@ const menuByRole: Record<string, MenuItem[]> = {
     { href: '/dashboard/mapel', label: 'Mata Pelajaran', icon: Icon.Mapel },
     { href: '/dashboard/guru', label: 'Guru & Assign', icon: Icon.Guru },
     { href: '/dashboard/nilai', label: 'Nilai', icon: Icon.Nilai },
+    { href: '/dashboard/legger', label: 'Legger Nilai', icon: Icon.Legger },
     { href: '/dashboard/rapor', label: 'Cetak Rapor', icon: Icon.Rapor },
   ],
   guru_mapel: [
@@ -102,6 +108,7 @@ const menuByRole: Record<string, MenuItem[]> = {
     { href: '/dashboard', label: 'Dashboard', icon: Icon.Dashboard },
     { href: '/dashboard/nilai', label: 'Nilai Saya', icon: Icon.Nilai },
     { href: '/dashboard/wali-kelas', label: 'Input Wali Kelas', icon: Icon.WaliKelas },
+    { href: '/dashboard/legger', label: 'Legger Nilai', icon: Icon.Legger },
     { href: '/dashboard/rapor', label: 'Cetak Rapor', icon: Icon.Rapor },
   ],
   kepsek: [{ href: '/dashboard', label: 'Dashboard', icon: Icon.Dashboard }],

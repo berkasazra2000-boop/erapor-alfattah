@@ -66,7 +66,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const origin = req.nextUrl.origin
+    const forwardedHost = req.headers.get('x-forwarded-host')
+    const forwardedProto = req.headers.get('x-forwarded-proto') || 'https'
+    const origin = forwardedHost
+  ? `${forwardedProto}://${forwardedHost}`
+  : req.nextUrl.origin
     const browser = await getBrowser()
     page = await browser.newPage()
 

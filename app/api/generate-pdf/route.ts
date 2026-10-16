@@ -43,8 +43,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
     }
 
-    const origin = req.nextUrl.origin
-    const url = `${origin}/print/rapor/${student_id}`
+    const forwardedHost = req.headers.get('x-forwarded-host')
+    const forwardedProto = req.headers.get('x-forwarded-proto') || 'https'
+    const origin = forwardedHost
+      ? `${forwardedProto}://${forwardedHost}`
+      : req.nextUrl.origin
+    const url = `${origin}/print/rapor/${student_id}?bulk=1`
 
     const browser = await getBrowser()
     page = await browser.newPage()
