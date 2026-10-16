@@ -1,6 +1,10 @@
 // app/api/generate-pdf-kelas/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import puppeteer, { type Browser } from 'puppeteer'
+import puppeteer from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
+import type { Browser } from 'puppeteer-core'
+
+
 import { PDFDocument } from 'pdf-lib'
 
 export const runtime = 'nodejs'
@@ -8,15 +12,12 @@ export const maxDuration = 300
 
 let browserPromise: Promise<Browser> | null = null
 
-function getBrowser(): Promise<Browser> {
+async function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-      ],
     })
 
     browserPromise.then((b) => {
