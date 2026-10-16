@@ -7,20 +7,13 @@ export const dynamic = 'force-dynamic'
 
 export default async function PrintRaporPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ student_id: string }>
-  searchParams: Promise<{ bulk?: string }>
 }) {
   const { student_id } = await params
-  const { bulk } = await searchParams
   const data = await getRaporData(student_id)
 
   if (!data) notFound()
-
-  // bulk=1 → tampilkan identitas di body (untuk bulk print)
-  // default → sembunyikan identitas (untuk single PDF, identitas dari Puppeteer header)
-  const isBulk = bulk === '1'
 
   return (
     <RaporContent
@@ -32,7 +25,7 @@ export default async function PrintRaporPage({
       absensi={data.absensi}
       catatan={data.catatan}
       waliKelas={data.waliKelas}
-      hideIdentitas={!isBulk}
+      hideIdentitas={true}
     />
   )
 }

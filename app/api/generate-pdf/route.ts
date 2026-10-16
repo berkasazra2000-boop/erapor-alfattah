@@ -33,14 +33,20 @@ export async function POST(req: NextRequest) {
     const { student_id } = await req.json()
 
     if (!student_id) {
-      return NextResponse.json({ error: 'student_id wajib diisi' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'student_id wajib diisi' },
+        { status: 400 }
+      )
     }
 
     const { getRaporData } = await import('@/lib/rapor-data')
     const data = await getRaporData(student_id)
 
     if (!data) {
-      return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Siswa tidak ditemukan' },
+        { status: 404 }
+      )
     }
 
     const forwardedHost = req.headers.get('x-forwarded-host')
@@ -48,7 +54,8 @@ export async function POST(req: NextRequest) {
     const origin = forwardedHost
       ? `${forwardedProto}://${forwardedHost}`
       : req.nextUrl.origin
-    const url = `${origin}/print/rapor/${student_id}?bulk=1`
+
+    const url = `${origin}/print/rapor/${student_id}`
 
     const browser = await getBrowser()
     page = await browser.newPage()
@@ -56,7 +63,6 @@ export async function POST(req: NextRequest) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
     await page.evaluateHandle('document.fonts.ready')
 
-    // ============ HEADER: identitas lengkap ============
     const headerTemplate = `
       <div style="
         width: 100%;
@@ -68,47 +74,46 @@ export async function POST(req: NextRequest) {
       ">
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="width: 90px; padding: 2px 2px; vertical-align: top;">Nama</td>
-            <td style="width: 8px; padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.siswa.nama}</td>
+            <td style="width: 90px; padding: 2px;">Nama</td>
+            <td style="width: 8px; padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.siswa.nama}</td>
             <td style="width: 20mm;"></td>
-            <td style="width: 95px; padding: 2px 2px; vertical-align: top;">Kelas</td>
-            <td style="width: 8px; padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.siswa.kelas}</td>
+            <td style="width: 95px; padding: 2px;">Kelas</td>
+            <td style="width: 8px; padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.siswa.kelas}</td>
           </tr>
           <tr>
-            <td style="padding: 2px 2px; vertical-align: top;">NIS/NISN</td>
-            <td style="padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.siswa.nis} / ${data.siswa.nisn}</td>
+            <td style="padding: 2px;">NIS/NISN</td>
+            <td style="padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.siswa.nis} / ${data.siswa.nisn}</td>
             <td></td>
-            <td style="padding: 2px 2px; vertical-align: top;">Fase</td>
-            <td style="padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.siswa.fase}</td>
+            <td style="padding: 2px;">Fase</td>
+            <td style="padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.siswa.fase}</td>
           </tr>
           <tr>
-            <td style="padding: 2px 2px; vertical-align: top;">Nama Sekolah</td>
-            <td style="padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.sekolah.nama}</td>
+            <td style="padding: 2px;">Nama Sekolah</td>
+            <td style="padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.sekolah.nama}</td>
             <td></td>
-            <td style="padding: 2px 2px; vertical-align: top;">Semester</td>
-            <td style="padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.tahun.semester}</td>
+            <td style="padding: 2px;">Semester</td>
+            <td style="padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.tahun.semester}</td>
           </tr>
           <tr>
-            <td style="padding: 2px 2px; vertical-align: top;">Alamat</td>
-            <td style="padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.sekolah.alamat}</td>
+            <td style="padding: 2px;">Alamat</td>
+            <td style="padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.sekolah.alamat}</td>
             <td></td>
-            <td style="padding: 2px 2px; vertical-align: top;">Tahun Pelajaran</td>
-            <td style="padding: 2px 2px; vertical-align: top;">:</td>
-            <td style="padding: 2px 2px; vertical-align: top;">${data.tahun.tahun}</td>
+            <td style="padding: 2px;">Tahun Pelajaran</td>
+            <td style="padding: 2px;">:</td>
+            <td style="padding: 2px;">${data.tahun.tahun}</td>
           </tr>
         </table>
         <div style="border-bottom: 2px solid #000; margin-top: 5px;"></div>
       </div>
     `
 
-    // ============ FOOTER ============
     const footerTemplate = `
       <div style="
         width: 100%;
@@ -116,8 +121,8 @@ export async function POST(req: NextRequest) {
         box-sizing: border-box;
       ">
         <div style="
-          border-top: 1px solid #000;
-          padding-top: 3px;
+          border-top: 2px solid #000;
+          padding-top: 4px;
           display: flex;
           justify-content: space-between;
           font-size: 9px;
@@ -126,7 +131,7 @@ export async function POST(req: NextRequest) {
           font-style: italic;
         ">
           <span>${data.kelasNama} | ${data.siswa.nama} | ${data.siswa.nis}</span>
-          <span>Halaman: <span class="pageNumber"></span> dari <span class="totalPages"></span></span>
+          <span>Halaman: <span class="pageNumber"></span></span>
         </div>
       </div>
     `

@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import puppeteer from 'puppeteer-core'
 import chromium from '@sparticuz/chromium'
 import type { Browser } from 'puppeteer-core'
-
-
 import { PDFDocument } from 'pdf-lib'
 
 export const runtime = 'nodejs'
@@ -36,26 +34,58 @@ export async function POST(req: NextRequest) {
     const { class_id } = await req.json()
 
     if (!class_id) {
-      return NextResponse.json({ error: 'class_id wajib diisi' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'class_id wajib diisi' },
+        { status: 400 }
+      )
     }
 
     const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
 
+    // Info kelas + tingkat
     const { data: kelas } = await supabase
       .from('classes')
-      .select('nama')
+      .select('id, nama, class_levels(nama)')
       .eq('id', class_id)
       .single()
 
     if (!kelas) {
-      return NextResponse.json({ error: 'Kelas tidak ditemukan' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Kelas tidak ditemukan' },
+        { status: 404 }
+      )
     }
 
-    // Ambil semua siswa di kelas ini
+    const levelNama = (kelas as any).class_levels?.nama ?? ''
+    const fase = levelNama === 'X' ? 'E' : 'F'
+
+    // Info sekolah + tahun ajaran aktif
+    const [sekolahRes, tahunRes] = await Promise.all([
+      supabase
+        .from('schools')
+        .select('nama, alamat, kepala_sekolah, nip_kepsek')
+        .limit(1)
+        .single(),
+      supabase
+        .from('academic_years')
+        .select('tahun, semester')
+        .eq('is_active', true)
+        .maybeSingle(),
+    ])
+
+    const sekolah = sekolahRes.data ?? {
+      nama: '-',
+      alamat: '-',
+      kepala_sekolah: '-',
+      nip_kepsek: '-',
+    }
+    const tahun = tahunRes.data ?? { tahun: '-', semester: 1 }
+
+    // Semua siswa di kelas
     const { data: siswaList } = await supabase
       .from('students')
-      .select('id, nama, nis')
+      .select('id, nama, nis, nisn')
       .eq('class_id', class_id)
       .order('nama')
 
@@ -69,23 +99,72 @@ export async function POST(req: NextRequest) {
     const forwardedHost = req.headers.get('x-forwarded-host')
     const forwardedProto = req.headers.get('x-forwarded-proto') || 'https'
     const origin = forwardedHost
-  ? `${forwardedProto}://${forwardedHost}`
-  : req.nextUrl.origin
+      ? `${forwardedProto}://${forwardedHost}`
+      : req.nextUrl.origin
+
     const browser = await getBrowser()
     page = await browser.newPage()
 
-    // PDF gabungan
     const mergedPdf = await PDFDocument.create()
 
     for (let i = 0; i < siswaList.length; i++) {
       const siswa = siswaList[i]
-      // ?bulk=1 → tampilkan identitas di body (bukan di Puppeteer header)
-      const url = `${origin}/print/rapor/${siswa.id}?bulk=1`
+      const url = `${origin}/print/rapor/${siswa.id}`
 
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
       await page.evaluateHandle('document.fonts.ready')
 
-      // Footer per siswa — pageNumber akan reset karena render terpisah
+      const headerTemplate = `
+        <div style="
+          width: 100%;
+          padding: 6mm 20mm 0 20mm;
+          box-sizing: border-box;
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 11px;
+          color: #000;
+        ">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="width: 90px; padding: 2px;">Nama</td>
+              <td style="width: 8px; padding: 2px;">:</td>
+              <td style="padding: 2px;">${siswa.nama}</td>
+              <td style="width: 20mm;"></td>
+              <td style="width: 95px; padding: 2px;">Kelas</td>
+              <td style="width: 8px; padding: 2px;">:</td>
+              <td style="padding: 2px;">${kelas.nama}</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px;">NIS/NISN</td>
+              <td style="padding: 2px;">:</td>
+              <td style="padding: 2px;">${siswa.nis ?? '-'} / ${siswa.nisn ?? '-'}</td>
+              <td></td>
+              <td style="padding: 2px;">Fase</td>
+              <td style="padding: 2px;">:</td>
+              <td style="padding: 2px;">${fase}</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px;">Nama Sekolah</td>
+              <td style="padding: 2px;">:</td>
+              <td style="padding: 2px;">${sekolah.nama}</td>
+              <td></td>
+              <td style="padding: 2px;">Semester</td>
+              <td style="padding: 2px;">:</td>
+              <td style="padding: 2px;">${tahun.semester}</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px;">Alamat</td>
+              <td style="padding: 2px;">:</td>
+              <td style="padding: 2px;">${sekolah.alamat}</td>
+              <td></td>
+              <td style="padding: 2px;">Tahun Pelajaran</td>
+              <td style="padding: 2px;">:</td>
+              <td style="padding: 2px;">${tahun.tahun}</td>
+            </tr>
+          </table>
+          <div style="border-bottom: 2px solid #000; margin-top: 5px;"></div>
+        </div>
+      `
+
       const footerTemplate = `
         <div style="
           width: 100%;
@@ -112,17 +191,16 @@ export async function POST(req: NextRequest) {
         format: 'A4',
         printBackground: true,
         displayHeaderFooter: true,
-        headerTemplate: '<span></span>',
+        headerTemplate,
         footerTemplate,
         margin: {
-          top: '15mm',
-          bottom: '20mm',
+          top: '35mm',
+          bottom: '22mm',
           left: '20mm',
           right: '20mm',
         },
       })
 
-      // Ambil halaman dari PDF siswa, tambahkan ke PDF gabungan
       const siswaPdf = await PDFDocument.load(pdfBytes)
       const pages = await mergedPdf.copyPages(siswaPdf, siswaPdf.getPageIndices())
       pages.forEach((p) => mergedPdf.addPage(p))
