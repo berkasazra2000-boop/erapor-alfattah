@@ -98,6 +98,7 @@ const menuByRole: Record<string, MenuItem[]> = {
     { href: '/dashboard/guru', label: 'Guru & Assign', icon: Icon.Guru },
     { href: '/dashboard/nilai', label: 'Nilai', icon: Icon.Nilai },
     { href: '/dashboard/legger', label: 'Legger Nilai', icon: Icon.Legger },
+    { href: '/dashboard/ttd', label: 'Tanda Tangan', icon: Icon.WaliKelas },
     { href: '/dashboard/rapor', label: 'Cetak Rapor', icon: Icon.Rapor },
   ],
   guru_mapel: [

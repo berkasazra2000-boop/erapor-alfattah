@@ -78,7 +78,7 @@ function Identitas({ sekolah, siswa, tahun }: Props) {
           <td style={{ whiteSpace: 'nowrap' }}>Alamat</td>
           <td>:</td>
           <td style={{ whiteSpace: 'nowrap' }}>{sekolah.alamat}</td>
-          <td style={labelKanan}>Tahun Pelajaran</td>
+          <td style={labelKanan}>Tahun Ajaran</td>
           <td>:</td>
           <td>{tahun.tahun}</td>
         </tr>
@@ -140,7 +140,10 @@ export default function RaporContent({
         </>
       )}
 
-      <div className="rapor-judul">LAPORAN HASIL BELAJAR</div>
+      <div className="rapor-judul" style={{ textAlign: 'center', fontWeight: 'bold', margin: '14px 0' }}>
+        <div style={{ fontSize: '13pt' }}>LAPORAN HASIL BELAJAR</div>
+        <div style={{ fontSize: '11pt', marginTop: '4px' }}>PENILAIAN SUMATIF TENGAH SEMESTER (PSTS)</div>
+      </div>
 
       <table className="rapor-table">
         <thead>

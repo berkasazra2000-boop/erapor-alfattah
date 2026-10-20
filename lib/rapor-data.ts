@@ -25,9 +25,10 @@ export async function getRaporData(student_id: string) {
     .eq('is_active', true)
     .maybeSingle()
 
+  // ✅ TAMBAH kepala_sekolah_ttd_url
   const { data: sekolah } = await supabase
     .from('schools')
-    .select('nama, alamat, kepala_sekolah, nip_kepsek')
+    .select('nama, alamat, kepala_sekolah, nip_kepsek, kepala_sekolah_ttd_url')
     .limit(1)
     .single()
 
@@ -77,14 +78,18 @@ export async function getRaporData(student_id: string) {
 
   let waliNama = '-'
   let waliNip = '-'
+  let waliTtdUrl: string | null = null
+
   if (kelas?.wali_kelas_id) {
+    // ✅ TAMBAH ttd_url
     const { data: wali } = await supabase
       .from('profiles')
-      .select('nama, nip')
+      .select('nama, nip, ttd_url')
       .eq('id', kelas.wali_kelas_id)
       .single()
     waliNama = wali?.nama ?? '-'
     waliNip = wali?.nip ?? '-'
+    waliTtdUrl = wali?.ttd_url ?? null
   }
 
   const fase = levelNama === 'X' ? 'E' : 'F'
@@ -98,11 +103,12 @@ export async function getRaporData(student_id: string) {
       fase,
     },
     kelasNama: kelas?.nama ?? '-',
-    sekolah: sekolah ?? {
-      nama: '-',
-      alamat: '-',
-      kepala_sekolah: '-',
-      nip_kepsek: '-',
+    sekolah: {
+      nama: sekolah?.nama ?? '-',
+      alamat: sekolah?.alamat ?? '-',
+      kepala_sekolah: sekolah?.kepala_sekolah ?? '-',
+      nip_kepsek: sekolah?.nip_kepsek ?? '-',
+      kepala_sekolah_ttd_url: sekolah?.kepala_sekolah_ttd_url ?? null, // ✅ Tambahan
     },
     tahun: {
       tahun: tahun?.tahun ?? '-',
@@ -118,6 +124,6 @@ export async function getRaporData(student_id: string) {
       alpha: absensi?.alpha ?? 0,
     },
     catatan: catatanData?.catatan ?? '',
-    waliKelas: { nama: waliNama, nip: waliNip },
+    waliKelas: { nama: waliNama, nip: waliNip, ttd_url: waliTtdUrl }, // ✅ Tambahan
   }
 }
