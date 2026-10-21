@@ -279,7 +279,7 @@ export default async function DashboardPage() {
         {/* ===== STAT CARDS ===== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard
-            label="Mapel Diampu"
+            label="Mapel yang Saya Ajar"
             value={assignments?.length ?? 0}
             icon={Icon.Book}
             color="bg-blue-50 text-blue-600"
@@ -287,7 +287,7 @@ export default async function DashboardPage() {
           />
           {isWaliKelas && (
             <StatCard
-              label="Kelas Binaan"
+              label="Kelas yang Saya Bina"
               value={kelasBinaan?.length ?? 0}
               icon={Icon.Building}
               color="bg-purple-50 text-purple-600"
