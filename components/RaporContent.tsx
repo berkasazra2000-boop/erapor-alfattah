@@ -150,8 +150,8 @@ export default function RaporContent({
           <tr>
             <th style={{ width: '5%' }}>No</th>
             <th style={{ width: '24%' }}>Mata Pelajaran</th>
-            <th style={{ width: '13%', whiteSpace: 'nowrap' }}>Nilai Akhir</th>
-            <th>Capaian Kompetensi</th>
+            <th style={{ width: '13%', whiteSpace: 'nowrap' }}>Nilai</th>
+            <th>Deskripsi</th>
           </tr>
         </thead>
         <tbody>
