@@ -13,7 +13,9 @@ async function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(
+        process.cwd() + "/node_modules/@sparticuz/chromium/bin/"
+      ),
       headless: true,
     })
 
