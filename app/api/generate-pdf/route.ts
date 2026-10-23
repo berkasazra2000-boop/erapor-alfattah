@@ -5,17 +5,20 @@ import chromium from '@sparticuz/chromium'
 import type { Browser } from 'puppeteer-core'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 60 // Vercel Hobby max 60s (upaya terakhir)
 
 let browserPromise: Promise<Browser> | null = null
 
 async function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(
-        process.cwd() + "/node_modules/@sparticuz/chromium/bin/"
-      ),
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+      ],
+      executablePath: await chromium.executablePath(),
       headless: true,
     })
 
@@ -35,28 +38,19 @@ export async function POST(req: NextRequest) {
     const { student_id } = await req.json()
 
     if (!student_id) {
-      return NextResponse.json(
-        { error: 'student_id wajib diisi' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'student_id wajib diisi' }, { status: 400 })
     }
 
     const { getRaporData } = await import('@/lib/rapor-data')
     const data = await getRaporData(student_id)
 
     if (!data) {
-      return NextResponse.json(
-        { error: 'Siswa tidak ditemukan' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
     }
 
     const forwardedHost = req.headers.get('x-forwarded-host')
     const forwardedProto = req.headers.get('x-forwarded-proto') || 'https'
-    const origin = forwardedHost
-      ? `${forwardedProto}://${forwardedHost}`
-      : req.nextUrl.origin
-
+    const origin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : req.nextUrl.origin
     const url = `${origin}/print/rapor/${student_id}`
 
     const browser = await getBrowser()
@@ -65,15 +59,22 @@ export async function POST(req: NextRequest) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
     await page.evaluateHandle('document.fonts.ready')
 
+    // ✅ TUNGGU GAMBAR TTD SELESAI DI-LOAD
+    await page.evaluate(async () => {
+      const imgs = Array.from(document.querySelectorAll('img'))
+      await Promise.all(
+        imgs.map((img: any) => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        })
+      )
+    })
+
     const headerTemplate = `
-      <div style="
-        width: 100%;
-        padding: 6mm 20mm 0 20mm;
-        box-sizing: border-box;
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 11px;
-        color: #000;
-      ">
+      <div style="width: 100%; padding: 6mm 20mm 0 20mm; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #000;">
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="width: 90px; padding: 2px;">Nama</td>
@@ -112,26 +113,13 @@ export async function POST(req: NextRequest) {
             <td style="padding: 2px;">${data.tahun.tahun}</td>
           </tr>
         </table>
-        <div style="border-bottom: 2px solid #000; margin-top: 5px;"></div>
+        <div style="border-bottom: 1px solid #000; margin-top: 5px;"></div>
       </div>
     `
 
     const footerTemplate = `
-      <div style="
-        width: 100%;
-        padding: 0 20mm;
-        box-sizing: border-box;
-      ">
-        <div style="
-          border-top: 2px solid #000;
-          padding-top: 4px;
-          display: flex;
-          justify-content: space-between;
-          font-size: 9px;
-          font-family: Arial, Helvetica, sans-serif;
-          font-weight: bold;
-          font-style: italic;
-        ">
+      <div style="width: 100%; padding: 0 20mm; box-sizing: border-box;">
+        <div style="border-top: 1px solid #000; padding-top: 4px; display: flex; justify-content: space-between; font-size: 9px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-style: italic;">
           <span>${data.kelasNama} | ${data.siswa.nama} | ${data.siswa.nis}</span>
           <span>Halaman: <span class="pageNumber"></span></span>
         </div>
@@ -144,12 +132,7 @@ export async function POST(req: NextRequest) {
       displayHeaderFooter: true,
       headerTemplate,
       footerTemplate,
-      margin: {
-        top: '35mm',
-        bottom: '22mm',
-        left: '20mm',
-        right: '20mm',
-      },
+      margin: { top: '35mm', bottom: '22mm', left: '20mm', right: '20mm' },
     })
 
     await page.close()
@@ -166,9 +149,6 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     if (page) await page.close().catch(() => {})
     console.error('GENERATE PDF ERROR:', error)
-    return NextResponse.json(
-      { error: 'Gagal generate PDF: ' + (error.message ?? 'unknown') },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Gagal generate PDF: ' + (error.message ?? 'unknown') }, { status: 500 })
   }
 }
