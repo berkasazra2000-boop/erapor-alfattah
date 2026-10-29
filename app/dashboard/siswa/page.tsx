@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PageHeader from '@/components/ui/PageHeader'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button, ButtonLink } from '@/components/ui/Button'
+import FilterKelas from './FilterKelas'
 
 const Icon = {
   Plus: (
@@ -55,15 +56,28 @@ async function hapusSiswa(formData: FormData) {
   revalidatePath('/dashboard/siswa')
 }
 
-export default async function SiswaPage() {
+export default async function SiswaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ kelas?: string }>
+}) {
+  const { kelas: filterId } = await searchParams
   const supabase = await createClient()
+
+  // Siapkan query dasar
+  let siswaQuery = supabase
+    .from('students')
+    .select('id, nama, nis, nisn, class_id, classes(nama)')
+    .order('nama')
+
+  // Jika ada filter kelas dari URL, tambahkan kondisinya
+  if (filterId && filterId !== 'all') {
+    siswaQuery = siswaQuery.eq('class_id', filterId)
+  }
 
   const [kelasRes, siswaRes] = await Promise.all([
     supabase.from('classes').select('id, nama, class_levels(nama)').order('nama'),
-    supabase
-      .from('students')
-      .select('id, nama, nis, nisn, class_id, classes(nama)')
-      .order('nama'),
+    siswaQuery,
   ])
 
   const kelas = kelasRes.data ?? []
@@ -73,7 +87,7 @@ export default async function SiswaPage() {
     <div>
       <PageHeader
         title="Siswa"
-        subtitle={`${daftar.length} siswa terdaftar di ${kelas.length} kelas`}
+        subtitle={`${daftar.length} siswa terdaftar`}
         badge="Manajemen Data"
         actions={
           <>
@@ -118,7 +132,11 @@ export default async function SiswaPage() {
 
       {/* TABEL SISWA */}
       <Card className="overflow-hidden">
-        <CardHeader title="Daftar Siswa" subtitle={`Total ${daftar.length} siswa`} />
+        <CardHeader 
+          title="Daftar Siswa" 
+          subtitle={`Menampilkan ${daftar.length} siswa`}
+          action={<FilterKelas kelasList={kelas} defaultKelas={filterId || 'all'} />}
+        />
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -150,7 +168,6 @@ export default async function SiswaPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-right flex items-center justify-end gap-1">
-                      {/* ✅ TOMBOL EDIT BARU */}
                       <Link
                         href={`/dashboard/siswa/${row.id}/edit`}
                         className="inline-flex items-center gap-1 p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
@@ -158,7 +175,6 @@ export default async function SiswaPage() {
                       >
                         {Icon.Edit}
                       </Link>
-                      {/* TOMBOL HAPUS */}
                       <form action={hapusSiswa} className="inline">
                         <input type="hidden" name="id" value={row.id} />
                         <button
@@ -180,8 +196,8 @@ export default async function SiswaPage() {
                         {Icon.Users}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-600 mb-1">Belum ada siswa</div>
-                        <div className="text-xs">Tambahkan siswa baru atau import dari Excel</div>
+                        <div className="font-medium text-slate-600 mb-1">Siswa tidak ditemukan</div>
+                        <div className="text-xs">Tidak ada siswa di kelas yang dipilih.</div>
                       </div>
                     </div>
                   </td>
