@@ -6,7 +6,6 @@ import PageHeader from '@/components/ui/PageHeader'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button, ButtonLink } from '@/components/ui/Button'
 
-// ============ ICONS ============
 const Icon = {
   Plus: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -23,6 +22,11 @@ const Icon = {
       <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" />
     </svg>
   ),
+  Edit: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  ),
   Users: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -32,7 +36,6 @@ const Icon = {
   ),
 }
 
-// ============ SERVER ACTIONS ============
 async function tambahSiswa(formData: FormData) {
   'use server'
   const supabase = await createClient()
@@ -82,132 +85,86 @@ export default async function SiswaPage() {
         }
       />
 
-      {/* ===== FORM TAMBAH ===== */}
+      {/* FORM TAMBAH */}
       <Card className="mb-6">
-        <CardHeader
-          title="Tambah Siswa"
-          subtitle="Isi data siswa baru secara manual"
-        />
-        <form
-          action={tambahSiswa}
-          className="p-5 grid grid-cols-1 md:grid-cols-5 gap-3 items-end"
-        >
+        <CardHeader title="Tambah Siswa" subtitle="Isi data siswa baru secara manual" />
+        <form action={tambahSiswa} className="p-5 grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-              Nama Lengkap
-            </label>
-            <input
-              name="nama"
-              required
-              placeholder="Ahmad Fauzi"
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
-            />
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Nama Lengkap</label>
+            <input name="nama" required placeholder="Ahmad Fauzi" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-              NIS
-            </label>
-            <input
-              name="nis"
-              placeholder="1567"
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
-            />
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">NIS</label>
+            <input name="nis" placeholder="1567" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-              NISN
-            </label>
-            <input
-              name="nisn"
-              placeholder="3098590005"
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all"
-            />
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">NISN</label>
+            <input name="nisn" placeholder="3098590005" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">
-              Kelas
-            </label>
-            <select
-              name="class_id"
-              required
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all bg-white"
-            >
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Kelas</label>
+            <select name="class_id" required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all bg-white">
               <option value="">Pilih...</option>
               {kelas.map((k: any) => (
-                <option key={k.id} value={k.id}>
-                  {k.nama}
-                </option>
+                <option key={k.id} value={k.id}>{k.nama}</option>
               ))}
             </select>
           </div>
           <Button type="submit">
-            {Icon.Plus}
-            Simpan
+            {Icon.Plus} Simpan
           </Button>
         </form>
       </Card>
 
-      {/* ===== TABEL ===== */}
+      {/* TABEL SISWA */}
       <Card className="overflow-hidden">
-        <CardHeader
-          title="Daftar Siswa"
-          subtitle={`Total ${daftar.length} siswa`}
-        />
+        <CardHeader title="Daftar Siswa" subtitle={`Total ${daftar.length} siswa`} />
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Nama
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  NIS
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  NISN
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Kelas
-                </th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-20">
-                  Aksi
-                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">NIS</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">NISN</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kelas</th>
+                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {daftar.length > 0 ? (
                 daftar.map((row: any) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors"
-                  >
+                  <tr key={row.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                           {row.nama.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()}
                         </div>
-                        <span className="font-medium text-slate-900">
-                          {row.nama}
-                        </span>
+                        <span className="font-medium text-slate-900">{row.nama}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600 font-mono text-xs">
-                      {row.nis ?? '—'}
-                    </td>
-                    <td className="px-5 py-3.5 text-slate-600 font-mono text-xs">
-                      {row.nisn ?? '—'}
-                    </td>
+                    <td className="px-5 py-3.5 text-slate-600 font-mono text-xs">{row.nis ?? '—'}</td>
+                    <td className="px-5 py-3.5 text-slate-600 font-mono text-xs">{row.nisn ?? '—'}</td>
                     <td className="px-5 py-3.5">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
                         {row.classes?.nama ?? '—'}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-3.5 text-right flex items-center justify-end gap-1">
+                      {/* ✅ TOMBOL EDIT BARU */}
+                      <Link
+                        href={`/dashboard/siswa/${row.id}/edit`}
+                        className="inline-flex items-center gap-1 p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
+                        title="Edit Siswa"
+                      >
+                        {Icon.Edit}
+                      </Link>
+                      {/* TOMBOL HAPUS */}
                       <form action={hapusSiswa} className="inline">
                         <input type="hidden" name="id" value={row.id} />
                         <button
                           type="submit"
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-red-600 hover:bg-red-50 text-xs font-medium transition-colors"
+                          className="inline-flex items-center gap-1 p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                          title="Hapus Siswa"
                         >
                           {Icon.Trash}
                         </button>
@@ -223,12 +180,8 @@ export default async function SiswaPage() {
                         {Icon.Users}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-600 mb-1">
-                          Belum ada siswa
-                        </div>
-                        <div className="text-xs">
-                          Tambahkan siswa baru atau import dari Excel
-                        </div>
+                        <div className="font-medium text-slate-600 mb-1">Belum ada siswa</div>
+                        <div className="text-xs">Tambahkan siswa baru atau import dari Excel</div>
                       </div>
                     </div>
                   </td>
