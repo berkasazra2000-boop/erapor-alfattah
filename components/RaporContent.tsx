@@ -113,11 +113,13 @@ export default function RaporContent({
   const pilihan = mapel.filter((m) => m.kategori === 'pilihan')
   const mulok = mapel.filter((m) => m.kategori === 'muatan_lokal')
 
-  const tanggalIndo = new Date().toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  // const tanggalIndo = new Date().toLocaleDateString('id-ID', {
+  //   day: 'numeric',
+  //   month: 'long',
+  //   year: 'numeric',
+  // })
+
+  const tanggalIndo = '24 Oktober 2026'
 
   const startPilihan = wajib.length + 1
   const startMulok = wajib.length + pilihan.length + 1
