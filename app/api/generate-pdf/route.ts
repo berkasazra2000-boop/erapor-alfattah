@@ -58,6 +58,19 @@ export async function POST(req: NextRequest) {
 
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
     await page.evaluateHandle('document.fonts.ready')
+    // ✅ PAKSA TUNGGU SEMUA GAMBAR (TERMASUK TTD) SELESAI DI-DOWNLOAD
+    await page.evaluate(async () => {
+      const imgs = Array.from(document.querySelectorAll('img'))
+      await Promise.all(
+        imgs.map((img: any) => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        })
+      )
+    })
 
     // ✅ TUNGGU GAMBAR TTD SELESAI DI-LOAD
     await page.evaluate(async () => {
