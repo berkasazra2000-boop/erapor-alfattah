@@ -16,6 +16,7 @@ type Props = {
     alamat: string
     kepala_sekolah: string
     nip_kepsek: string
+    kepala_sekolah_ttd_url?: string | null // ✅ Tambahan tipe data
   }
   siswa: {
     nama: string
@@ -34,7 +35,7 @@ type Props = {
   ekskul: EkskulItem[]
   absensi: { sakit: number; izin: number; alpha: number }
   catatan: string
-  waliKelas: { nama: string; nip: string }
+  waliKelas: { nama: string; nip: string; ttd_url?: string | null } // ✅ Tambahan tipe data
   hideIdentitas?: boolean
 }
 
@@ -112,12 +113,6 @@ export default function RaporContent({
   const wajib = mapel.filter((m) => m.kategori === 'wajib')
   const pilihan = mapel.filter((m) => m.kategori === 'pilihan')
   const mulok = mapel.filter((m) => m.kategori === 'muatan_lokal')
-
-  // const tanggalIndo = new Date().toLocaleDateString('id-ID', {
-  //   day: 'numeric',
-  //   month: 'long',
-  //   year: 'numeric',
-  // })
 
   const tanggalIndo = '24 Oktober 2026'
 
@@ -272,7 +267,23 @@ export default function RaporContent({
             </tr>
             <tr>
               <td style={{ height: '80px' }}></td>
-              <td></td>
+              {/* ✅ GAMBAR TTD WALI KELAS MUNCUL DI SINI */}
+              <td style={{ height: '80px', paddingLeft: '20mm', verticalAlign: 'bottom' }}>
+                {waliKelas.ttd_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img 
+                    src={waliKelas.ttd_url} 
+                    alt="TTD Wali Kelas" 
+                    style={{ 
+                      maxHeight: '75px', 
+                      maxWidth: '200px', 
+                      objectFit: 'contain',
+                      display: 'block',
+                      marginBottom: '4px' 
+                    }} 
+                  />
+                )}
+              </td>
             </tr>
             <tr>
               <td style={{ textAlign: 'left', verticalAlign: 'bottom' }}>
@@ -297,7 +308,23 @@ export default function RaporContent({
         <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '10pt' }}>
           <div>Mengetahui,</div>
           <div style={{ fontWeight: 'bold' }}>Kepala Sekolah</div>
-          <div style={{ height: '80px' }}></div>
+          
+          {/* ✅ GAMBAR TTD KEPSEK MUNCUL DI SINI */}
+          <div style={{ height: '75px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginTop: '5px', marginBottom: '4px' }}>
+            {sekolah.kepala_sekolah_ttd_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img 
+                src={sekolah.kepala_sekolah_ttd_url} 
+                alt="TTD Kepala Sekolah" 
+                style={{ 
+                  maxHeight: '75px', 
+                  maxWidth: '200px', 
+                  objectFit: 'contain' 
+                }} 
+              />
+            )}
+          </div>
+
           <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>
             {sekolah.kepala_sekolah}
           </div>
