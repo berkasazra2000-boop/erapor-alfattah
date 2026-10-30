@@ -3,7 +3,13 @@
 
 import { useState } from 'react'
 
-export default function PrintButton({ studentId }: { studentId: string }) {
+export default function PrintButton({ 
+  studentId, 
+  siswaNama 
+}: { 
+  studentId: string
+  siswaNama: string 
+}) {
   const [loading, setLoading] = useState(false)
 
   async function handleDownload() {
@@ -25,7 +31,8 @@ export default function PrintButton({ studentId }: { studentId: string }) {
 
       const a = document.createElement('a')
       a.href = url
-      a.download = 'rapor.pdf'
+      // ✅ Nama file otomatis pakai nama siswa
+      a.download = `Rapor - ${siswaNama}.pdf` 
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

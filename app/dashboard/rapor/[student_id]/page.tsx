@@ -1,10 +1,28 @@
 // app/dashboard/rapor/[student_id]/page.tsx
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 import { getRaporData } from '@/lib/rapor-data'
 import RaporContent from '@/components/RaporContent'
 import PrintButton from './PrintButton'
 
+// ✅ 1. Mengatur Judul Tab Browser / PDF
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ student_id: string }>
+}): Promise<Metadata> {
+  const { student_id } = await params
+  const data = await getRaporData(student_id)
+
+  if (!data) return { title: 'Cetak Rapor' }
+
+  return {
+    title: `Rapor - ${data.siswa.nama}`,
+  }
+}
+
+// ✅ 2. Komponen Halaman Utama
 export default async function RaporDetailPage({
   params,
 }: {
@@ -12,6 +30,7 @@ export default async function RaporDetailPage({
 }) {
   const { student_id } = await params
   const data = await getRaporData(student_id)
+
   if (!data) notFound()
 
   return (
@@ -43,7 +62,12 @@ export default async function RaporDetailPage({
               Kelas {data.siswa.kelas} · NIS {data.siswa.nis}
             </p>
           </div>
-          <PrintButton studentId={student_id} />
+          
+          {/* ✅ 3. Kirim siswaNama ke PrintButton */}
+          <PrintButton 
+            studentId={student_id} 
+            siswaNama={data.siswa.nama} 
+          />
         </div>
       </div>
 
@@ -53,7 +77,7 @@ export default async function RaporDetailPage({
           <path d="M12 16v-4M12 8h.01" />
         </svg>
         <div>
-          <b>Tips:</b> Klik tombol Cetak → PDF akan otomatis ter-download.
+          <b>Tips:</b> Klik tombol Cetak → PDF akan otomatis ter-download dengan nama siswa.
         </div>
       </div>
 
