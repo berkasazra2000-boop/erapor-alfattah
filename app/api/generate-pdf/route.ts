@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
     await page.close()
     page = null
 
-    const safeName = data.siswa.nama.replace(/[^a-zA-Z0-9]/g, '-')
+    const safeName = encodeURIComponent(data.siswa.nama)
 
     return new NextResponse(pdfBuffer as any, {
       headers: {
