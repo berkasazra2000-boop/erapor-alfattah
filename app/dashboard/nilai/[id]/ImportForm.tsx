@@ -120,10 +120,10 @@ export default function ImportForm({
 
         if (materiSiswa.length > 0 && nilai !== null) {
           finalCp = materiSiswa
-            .map((materi) => `Murid menunjukkan capaian ${predikat} dalam menguasai materi ${materi}.`)
+            .map((materi) => `Murid menunjukkan penguasaan yang ${predikat.toLowerCase()} dalam memahami materi ${materi}.`)
             .join(' ')
         } else if (nilai !== null) {
-          finalCp = `Murid menunjukkan capaian ${predikat} dalam menguasai materi mata pelajaran ini.`
+          finalCp = `Murid menunjukkan penguasaan yang ${predikat.toLowerCase()} dalam memahami materi mata pelajaran ini.`
         }
 
         return {

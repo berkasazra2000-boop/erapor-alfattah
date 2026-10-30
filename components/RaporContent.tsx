@@ -89,13 +89,36 @@ function Identitas({ sekolah, siswa, tahun }: Props) {
 }
 
 function MapelRow({ m, no }: { m: MapelItem; no: number }) {
-  // Cek apakah sudah ada kata "Murid" di awal, kalau belum, kita tambahkan
-  let finalCp = m.cp || ''
-  if (finalCp && !finalCp.toLowerCase().startsWith('murid')) {
-    // Mengubah huruf pertama predikat jadi huruf kecil (contoh: Sangat -> sangat)
-    const lowerCp = finalCp.charAt(0).toLowerCase() + finalCp.slice(1)
-    finalCp = `Murid menunjukkan capaian ${lowerCp}`
+  // ✅ Fungsi untuk menyesuaikan format teks lama menjadi format baru secara otomatis
+  function formatDeskripsi(cp: string) {
+    if (!cp) return ''
+    let text = cp
+
+    // Jika sudah format baru, langsung kembalikan
+    if (text.startsWith('Murid menunjukkan penguasaan yang')) {
+      return text
+    }
+
+    // Bersihkan prefix lama
+    text = text.replace(/^Mencapai kompetensi dengan\s+/i, '')
+    text = text.replace(/^Murid menunjukkan capaian\s+/i, '')
+
+    // Ganti "menguasai" jadi "memahami"
+    text = text.replace(/dalam menguasai materi/gi, 'dalam memahami materi')
+    
+    // Ubah predikat di depan jadi huruf kecil
+    const parts = text.split(' dalam ')
+    if (parts.length > 1) {
+      parts[0] = parts[0].toLowerCase()
+      text = parts.join(' dalam ')
+    } else {
+      text = text.charAt(0).toLowerCase() + text.slice(1)
+    }
+
+    return `Murid menunjukkan penguasaan yang ${text}`
   }
+
+  const finalCp = formatDeskripsi(m.cp)
 
   return (
     <tr>
