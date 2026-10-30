@@ -89,12 +89,20 @@ function Identitas({ sekolah, siswa, tahun }: Props) {
 }
 
 function MapelRow({ m, no }: { m: MapelItem; no: number }) {
+  // Cek apakah sudah ada kata "Murid" di awal, kalau belum, kita tambahkan
+  let finalCp = m.cp || ''
+  if (finalCp && !finalCp.toLowerCase().startsWith('murid')) {
+    // Mengubah huruf pertama predikat jadi huruf kecil (contoh: Sangat -> sangat)
+    const lowerCp = finalCp.charAt(0).toLowerCase() + finalCp.slice(1)
+    finalCp = `Murid menunjukkan capaian ${lowerCp}`
+  }
+
   return (
     <tr>
       <td className="center">{no}</td>
       <td>{m.nama}</td>
       <td className="center">{m.nilai ?? ''}</td>
-      <td className="cp">{m.cp || ''}</td>
+      <td className="cp">{finalCp}</td>
     </tr>
   )
 }
